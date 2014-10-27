@@ -7,7 +7,12 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <syslog.h>
 #include "analyzer.h"
+
+
+struct smp_stat *mlst = NULL;			/* mac address list */
+struct vm_stat *slst = NULL;			/* statistic list */
 
 int main(int argc, char *argv[])
 {
@@ -18,16 +23,20 @@ int main(int argc, char *argv[])
 	int snaplen = 84;						/* ethernet header and ip header, 34 */
 	int promisc = 1;						/* non zero */
 	int rfmon = 0;							/* zero, do not set monitor mode */
-	int to_ms = 1000;							/* milliseconds for read time out */
+	int to_ms = 1000;						/* milliseconds for read time out */
 	int buffer_size = 1048576;				/* buffer size is 1MB */
 	int tstamp_type = PCAP_TSTAMP_HOST;		/* time stamp type, provided by network adapter */
 	struct bpf_program prgm;				/* filter program */
 	bpf_u_int32 netmask = 0x00000000;		/* any address */
-	struct smp_stat *mlst = NULL;			/* mac address list */
-	struct vm_stat *slst = NULL;			/* statistic list */
 	char exp[] = "ether dst 00:16:3e:07:b2:80";
 
 	/* Detaches itself from teminal and run in background */
+	if (daemon(0, 0) == -1) {
+		fprintf(stderr, "Error: fail to daemonize the process.");
+		perror(strerror(errno));
+	}
+	openlog("vmstd", LOG_PID, LOG_USER);
+	syslog(LOG_INFO, "start vmstd ...\n");
 
 	/* Read mac addres file from /var/vmstd/mac.lst */
 	read_mac_lst(&mlst);
@@ -35,7 +44,8 @@ int main(int argc, char *argv[])
 	/* Get a live capture handle */
 	dev = pcap_create(dev_name, errbuf);
 	if (dev == NULL) {
-		fprintf(stderr, "Error: %s\n", errbuf);
+		/* fprintf(stderr, "Error: %s\n", errbuf); */
+		syslog(LOG_ERR, errbuf);
 		exit(EXIT_FAILURE);
 	}
 
@@ -57,6 +67,9 @@ int main(int argc, char *argv[])
 		pcap_perror(dev, "Error: ");
 		exit(EXIT_FAILURE);
 	}
+	
+	/* start report thread */
+
 
 	/* Reads packets infinitly, and get packet length */
 	/*
@@ -89,6 +102,9 @@ int main(int argc, char *argv[])
 
 	/* Free memory */
 	free_memory(&mlst, &slst);
+
+	/* */
+	closelog();
 
 	return (0);
 }

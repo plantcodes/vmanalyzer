@@ -1,10 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include <pthread.h>
-#include "analyzer.h"
+#include <unistd.h>
+#include <syslog.h>
+//#include "analyzer.h"
 
-static void * thr_fn(void *);
+#define LOGFILE "/var/log/tester"
+
+static void * thr_fn(void *arg);
 
 int main(int argc, char *argv[]) {
 	/* 
@@ -25,19 +30,30 @@ int main(int argc, char *argv[]) {
 	report_statistic(ssp1, &vsp1);	
 	free_memory(&ssp1, &vsp1);
 	*/
+
+	/*
+	if (daemon(0, 0) == -1) {
+		fprintf(stderr, "Error: fail to daemonize the process.");
+		perror(strerror(errno));
+	}
+	openlog(LOGFILE, LOG_PID, LOG_USER);
+	syslog(LOG_INFO, "start tester ...\n");
+	*/
+
 	pthread_t tid;
 	int err;
 
 	err = pthread_create(&tid, NULL, thr_fn, NULL);
-	printf("Process id: %lu", get_pid());
-	printf("Main thread id: %lu", pthread_self());
+	sleep(6);
+	printf("Process id: %lu\n", (unsigned long)getpid());
+	printf("Main thread id: %lu\n", (unsigned long)pthread_self());
 
 	return 1;
 }
 
-static void * thr_fn(void *) {
-	printf("Hello\n");
+static void * thr_fn(void *arg) {
 	while (1) {
-		sleep(100);
+		printf("Hello\n");
+		sleep(2);
 	}
 }
