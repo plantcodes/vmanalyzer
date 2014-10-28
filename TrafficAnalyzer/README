@@ -1,5 +1,0 @@
-A daemon process do VM network statistic 
-To make it works well, the following files should be exist:
-	/var/vmstd/mac.lst
-And the statistic information is periodically reported in file:
-	/var/vmstd/report.json
