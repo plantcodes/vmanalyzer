@@ -305,6 +305,7 @@ void report_statistic(struct smp_stat *ssl, struct vm_stat **vslp) {
 		memset(buf, 0, MAX_JSON_LEN);
 		vsp = vsp->next;
 	}
+	fclose(fp);
 }
 
 void free_memory(struct smp_stat **sslp, struct vm_stat **vslp) {

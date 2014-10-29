@@ -1,3 +1,8 @@
+/* filename: tester.c
+ * a testing demo for daemonization, signal processing,
+ * creating thread, memory management
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,12 +10,12 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <signal.h>
 #include "analyzer.h"
 
-#define LOGFILE "/var/log/tester"
-
 static void * thr_fn(void *arg);
-static void exit_hdl(void);
+static void sig_int(int signo);
+static void sig_term(int signo);
 
 /* global variables */
 struct vm_stat *vsp1 = NULL;
@@ -20,13 +25,14 @@ int main(int argc, char *argv[]) {
 	
 	pthread_t tid;
 	int err;
+	struct sigaction act, oact;
 	
 	/* detach process */
 	if (daemon(0, 1) == -1) {
 		fprintf(stderr, "Error: fail to daemonize the process.");
 		perror(strerror(errno));
 	}
-	openlog(LOGFILE, LOG_PID, LOG_DAEMON);
+	openlog(NULL, LOG_PID, LOG_DAEMON);
 	syslog(LOG_INFO, "start tester ...\n");
 
 	/* emulate a smp_stat list */
@@ -41,6 +47,21 @@ int main(int argc, char *argv[]) {
 	ssp1->sp = 20000;
 	ssp1->tp = 30000;
 	ssp1->next = NULL;
+
+	/* handle signals */
+	act.sa_handler = sig_int;
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = 0;
+	if (sigaction(SIGINT, &act, &oact) < 0) {
+		perror("Error: fail to install handler of SIGINT.\n");
+		exit(EXIT_FAILURE);
+	}
+	act.sa_handler = sig_term;
+	if (sigaction(SIGTERM, &act, &oact) < 0) {
+		perror("Error: fail to install handler of SIGTERM.\n");
+		exit(EXIT_FAILURE);
+	}
+	
 	
 	/* create thread to report */
 	err = pthread_create(&tid, NULL, thr_fn, NULL);
@@ -51,27 +72,30 @@ int main(int argc, char *argv[]) {
 		
 	/* emulate statistic */
 	while (1) {
-		sleep(1);
+		syslog(LOG_INFO, "make statistic.\n");
 		ssp1->rp += 1;
 		ssp1->sp += 2;
 		ssp1->tp += 3;
+		sleep(1);
 	}
 	
-	/* end statistic */
-	if (atexit(exit_hdl) != 0) {
-		perror("Can not register function.");
-	}
 	return 1;
 }
 
 static void * thr_fn(void *arg) {
 	while (1) {
-		syslog(Log_INFO, "report statistic.\n");
-		report_statistic(&ssp1, &vsp1);
+		syslog(LOG_INFO, "report statistic.\n");
+		report_statistic(ssp1, &vsp1);
 		sleep(6);
 	}
 }
 
-static void exit_hdl(void) {
+static void sig_int(int signo) {
+	syslog(LOG_INFO, "exit from SIGINT, free memory before exit");
+	free_memory(&ssp1, &vsp1);
+}
+
+static void sig_term(int signo) {
+	syslog(LOG_INFO, "exit from SIGTERM, free memory before exit");
 	free_memory(&ssp1, &vsp1);
 }
