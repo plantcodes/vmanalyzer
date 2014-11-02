@@ -88,6 +88,7 @@ void read_mac_lst(struct smp_stat **lstp) {
 
 	fgets(buf, 280, fp);
 	tmp = (struct smp_stat *)malloc(sizeof (struct smp_stat));
+	memset(tmp->mac, 0, MAX_NAME_LEN);
 	parse_line(buf, tmp->mac, tmp->vmn);
 	tmp->sp = 0;
 	tmp->rp = 0;
