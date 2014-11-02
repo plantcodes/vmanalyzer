@@ -1,5 +1,15 @@
-A daemon process do VM network statistic 
+### vmstd ###
+
+A damon process monitors VMs network characters,
+and reports statistical information periodly.
+
 To make it works well, the following files should be exist:
-	/var/vmstd/mac.lst
+`/var/vmstd/mac.list`
+which includes (ether_addr, host) pairs.
+`ether_addr` is ethernet mac address, eg. `00:16:3e:07:b2:80`.
+`host` is the host name(the VM domain name).
+
 And the statistic information is periodically reported in file:
-	/var/vmstd/report.json
+`/var/vmstd/report.json`
+
+
