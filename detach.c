@@ -43,7 +43,7 @@ void unlock_lock(pthread_mutex_t *lockp) {
 void * thr_fn(void *arg) {
 	struct smp_stat *tmp = NULL;
 	while (1) {
-		lock_lock(&lock);
+		/* lock_lock(&lock); there is a lock in report_statistic */
 		report_statistic(ssp, &vsp);
 		tmp = ssp;
 		while (tmp != NULL) {
@@ -52,7 +52,7 @@ void * thr_fn(void *arg) {
 			tmp->tp = 0;
 			tmp = tmp->next;
 		}
-		unlock_lock(&lock);
+		/* unlock_lock(&lock); */
 		syslog(LOG_INFO, "reported statistic.\n"); 
 		sleep(10);
 	}
