@@ -13,10 +13,25 @@
 #include <signal.h>
 #include <pthread.h>
 #include <syslog.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#define LOCKFILE "/var/run/vmstd.pid"
+#define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
 /* detach the process from terminal 
  */
 extern void daemonize(void);
+
+/* already running 
+ * see if a copy of this daemon is already running
+ * it will try to open file /var/run/vmstd.pid, 
+ * and add a record lock to it.
+ * if success to lock the file, 
+ * then write daemon process PID to it.
+ */
+extern void already_running(void);
 
 /* get lock
  * set default mutex attributes with NULL

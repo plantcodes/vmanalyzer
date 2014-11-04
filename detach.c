@@ -12,6 +12,35 @@ void daemonize(void) {
 	}
 }
 
+void already_running(void) {
+	int fd;
+	char buf[16] = "";
+
+	/* open lock file */
+	fd = open(LOCKFILE, O_RDWR | O_CREAT, LOCKMODE);
+	if (fd < 0) {
+		syslog(LOG_ERR, "can not open %s: %s\n", LOCKFILE, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	/* try add a record lock to lockfile */
+	if (lockf(fd, F_TLOCK, 0) < 0) {
+		if (errno == EACCES || errno == EAGAIN) {
+			syslog(LOG_ERR, "can not lock file %s, a copy of the daemon process is already running.\n", LOCKFILE);
+			close(fd);
+			exit(EXIT_FAILURE);
+		} else {
+			syslog(LOG_ERR, "can not lock file %s: %s\n", LOCKFILE, strerror(errno));
+			/* do not close(fd) */
+			exit(EXIT_FAILURE);
+		}
+	}
+	/* success to add a record lock to lockfile, and write a daemon process id to it */
+	ftruncate(fd, 0);	/* empty a file */
+	sprintf(buf, "%ld", (long)getpid());
+	write(fd, buf, strlen(buf)+1);
+}
+
 void get_lock(pthread_mutex_t *lockp) {
 	if (pthread_mutex_init(lockp, NULL) != 0) {
 		syslog(LOG_ERR, "fail to init a lock.\n");

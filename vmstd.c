@@ -40,12 +40,12 @@ int main(int argc, char *argv[])
 	dev = NULL;
 
 	/* Detaches itself from teminal and run in background */
-	/*
 	daemonize();
 	openlog(NULL, LOG_PID, LOG_DAEMON);
 	syslog(LOG_INFO, "start vmstd.\n");
-	*/
-	openlog(NULL, LOG_PID, LOG_USER);
+
+	/* detect if the daemon is the only copy of the daemon process that is running */
+	already_running();
 	
 	/* Install signal handler for SIGINT, SIGTERM */
 	install_sighdl(SIGINT, sig_int);
