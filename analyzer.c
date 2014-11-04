@@ -42,6 +42,7 @@ static struct vm_stat * find_vm(const char *name, struct vm_stat **vslp);
  */
 static void make_statistic(const struct smp_stat *ssl, struct vm_stat **vslp);
 
+static void print_json_object(char *buf, struct vm_stat *vsp);
 
 /* **************************************************************
  * ********* Implementation of global and local methods *********
@@ -327,6 +328,21 @@ static void make_statistic(const struct smp_stat *ssl, struct vm_stat **vslp) {
 	}
 }
 
+static void print_json_object(char *buf, struct vm_stat *vsp) {
+		sprintf(&buf[strlen(buf)], "{");
+		sprintf(&buf[strlen(buf)], "\"vmName\":\"%s\", ", vsp->vmn);
+		sprintf(&buf[strlen(buf)], "\"sentPackets\":%ld, ", vsp->sp);
+		sprintf(&buf[strlen(buf)], "\"receivedPackets\":%ld, ", vsp->rp);
+		sprintf(&buf[strlen(buf)], "\"throughPut\":%ld, ", vsp->tp);
+		sprintf(&buf[strlen(buf)], "\"averageSendPackets\":%ld, ", vsp->sp_avg);
+		sprintf(&buf[strlen(buf)], "\"averageReceivedPackets\":%ld, ", vsp->rp_avg);
+		sprintf(&buf[strlen(buf)], "\"biasAverageSentPackets\":%ld, ", vsp->sp_avg_bias);
+		sprintf(&buf[strlen(buf)], "\"biasAverageReceivedPackets\":%ld, ", vsp->rp_avg_bias);
+		sprintf(&buf[strlen(buf)], "\"weightedSendPackets\":%ld, ", vsp->sp_wtd);
+		sprintf(&buf[strlen(buf)], "\"weightedReceivedPackets\":%ld", vsp->rp_wtd);
+		sprintf(&buf[strlen(buf)], "}");
+}
+
 void report_statistic(struct smp_stat *ssl, struct vm_stat **vslp) {
 	char path[] = "/var/vmstd/report.json";	
 	FILE *fp = fopen(path, "w+");
@@ -341,23 +357,20 @@ void report_statistic(struct smp_stat *ssl, struct vm_stat **vslp) {
 
 	make_statistic(ssl, vslp);
 	vsp = *vslp;
+	sprintf(&buf[0], "[");
+	print_json_object(buf, vsp);
+	ret = fputs(buf, fp);
+	memset(buf, 0, MAX_JSON_LEN);
+	vsp = vsp->next;
 	while (vsp != NULL) {
-		sprintf(buf, "{");
-		sprintf(&buf[strlen(buf)], "\"vmName\":\"%s\", ", vsp->vmn);
-		sprintf(&buf[strlen(buf)], "\"sentPackets\":%ld, ", vsp->sp);
-		sprintf(&buf[strlen(buf)], "\"receivedPackets\":%ld, ", vsp->rp);
-		sprintf(&buf[strlen(buf)], "\"throughPut\":%ld, ", vsp->tp);
-		sprintf(&buf[strlen(buf)], "\"averageSendPackets\":%ld, ", vsp->sp_avg);
-		sprintf(&buf[strlen(buf)], "\"averageReceivedPackets\":%ld, ", vsp->rp_avg);
-		sprintf(&buf[strlen(buf)], "\"biasAverageSentPackets\":%ld, ", vsp->sp_avg_bias);
-		sprintf(&buf[strlen(buf)], "\"biasAverageReceivedPackets\":%ld, ", vsp->rp_avg_bias);
-		sprintf(&buf[strlen(buf)], "\"weightedSendPackets\":%ld, ", vsp->sp_wtd);
-		sprintf(&buf[strlen(buf)], "\"weightedReceivedPackets\":%ld", vsp->rp_wtd);
-		sprintf(&buf[strlen(buf)], "}\n");
+		sprintf(&buf[0], ", ");
+		print_json_object(buf, vsp);
 		ret = fputs(buf, fp);
 		memset(buf, 0, MAX_JSON_LEN);
 		vsp = vsp->next;
 	}
+	sprintf(&buf[0], "]");
+	ret = fputs(buf, fp);
 	fclose(fp);
 }
 void free_memory(struct smp_stat **sslp, struct vm_stat **vslp) {

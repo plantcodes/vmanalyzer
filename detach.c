@@ -54,7 +54,7 @@ void * thr_fn(void *arg) {
 		}
 		/* unlock_lock(&lock); */
 		syslog(LOG_INFO, "reported statistic.\n"); 
-		sleep(10);
+		sleep(TS);
 	}
 }
 

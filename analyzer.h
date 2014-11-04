@@ -29,6 +29,7 @@
 #define ALPHA 0.5			/* parameters of the iteration formula */
 #define BETA 0.5
 #define K 0.5
+#define TS 300				/* report period: 300s(5min) */
 
 /* macros:
  * transfer hexadecimal to decimal

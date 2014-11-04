@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 	bpf_u_int32 netmask = 0x00000000;		/* any address */
 	pthread_t tid;							/* thread id */
 											/* filter expressoin */
-	char exp[] = "ether host 00:16:3e:db:e6:38 or 00:16:3e:9d:b1:ee";
+	char exp[] = "";
 
 	ssp = NULL;
 	vsp = NULL;
