@@ -10,7 +10,6 @@ To make it works well, the following files should be exist:
 * /var/run/vmstd.pid
 * /var/vmstd/report.json
 
->
 The `/var/vmstd/mac.list` is the records like `00:16:33:4d:5e:5f vmname`.
 
 The `/var/run/write.1` 's content is 1 or 0, the flag that 
