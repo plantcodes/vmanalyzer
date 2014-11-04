@@ -69,18 +69,36 @@ void unlock_lock(pthread_mutex_t *lockp) {
 	}
 }
 
+static start_report() {
+	FILE *fp = NULL;
+	truncate(WRITEFLAG, 0);		/* clear file content */
+	fp = fopen(WRITEFLAG, "+w");
+	if (fp == NULL) {
+		syslog(LOG_ERR, "Error: failed to open file %s .\n%s", WRITEFLAG, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	fputs("1", fp);
+	fclose(fp);
+}
+
+static end_report() {
+	FILE *fp = NULL;
+	truncate(WRITEFLAG, 0);
+	fp = fopen(WRITEFLAG, "+w");
+	if (fp == NULL) {
+		syslog(LOG_ERR, "Error: failed to open file %s .\n%s", WRITEFLAG, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	
+	fputs("0", fp);
+	fclose(fp);
+}
 void * thr_fn(void *arg) {
-	struct smp_stat *tmp = NULL;
 	while (1) {
 		/* lock_lock(&lock); there is a lock in report_statistic */
+		start_report();
 		report_statistic(ssp, &vsp);
-		tmp = ssp;
-		while (tmp != NULL) {
-			tmp->rp = 0;
-			tmp->sp = 0;
-			tmp->tp = 0;
-			tmp = tmp->next;
-		}
+		end_report();
 		/* unlock_lock(&lock); */
 		syslog(LOG_INFO, "reported statistic.\n"); 
 		sleep(TS);

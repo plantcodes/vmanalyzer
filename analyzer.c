@@ -40,7 +40,7 @@ static struct vm_stat * find_vm(const char *name, struct vm_stat **vslp);
  * Using current smp_stat imformation, it makes a deeper statistic
  * Assume that a VM may have more than one Network Interface Card 
  */
-static void make_statistic(const struct smp_stat *ssl, struct vm_stat **vslp);
+static void make_statistic(struct smp_stat *ssl, struct vm_stat **vslp);
 
 static void print_json_object(char *buf, struct vm_stat *vsp);
 
@@ -300,8 +300,8 @@ static struct vm_stat * find_vm(const char *name, struct vm_stat **vslp) {
 	return vsp;
 }
 
-static void make_statistic(const struct smp_stat *ssl, struct vm_stat **vslp) {
-	const struct smp_stat *ssp = ssl;	/* smp_stat pointer */
+static void make_statistic(struct smp_stat *ssl, struct vm_stat **vslp) {
+	struct smp_stat *ssp = ssl;	/* smp_stat pointer */
 	struct vm_stat *vsp = NULL;			/* vm_stat pointer */
 
 	/* traverse smp_stat list and get all VM statistic information */
@@ -311,6 +311,14 @@ static void make_statistic(const struct smp_stat *ssl, struct vm_stat **vslp) {
 		vsp->sp = ssp->sp;
 		vsp->rp = ssp->rp;
 		vsp->tp = ssp->tp;
+		ssp = ssp->next;
+	}
+	/* clear rp, sp, tp of smp_stat *ssl */
+	ssp = ssl;
+	while (ssp != NULL) {
+		ssp->rp = 0;
+		ssp->sp = 0;
+		ssp->tp = 0;
 		ssp = ssp->next;
 	}
 	unlock_lock(&lock);

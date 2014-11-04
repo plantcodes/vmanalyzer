@@ -135,6 +135,7 @@ extern void analyze_packets(pcap_t *p, u_char *user);
 extern void packet_handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes);
 
 /* Report VM traffic statistic information to file:
+ * and clear sp, rp, tp in (smp_stat *ssl)
  */
 extern void report_statistic(struct smp_stat *ssl, struct vm_stat **vslp);
 

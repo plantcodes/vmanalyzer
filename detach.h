@@ -18,6 +18,7 @@
 #include <fcntl.h>
 
 #define LOCKFILE "/var/run/vmstd.pid"
+#define WRITEFLAG "/var/run/write.1"
 #define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
 /* detach the process from terminal 
@@ -52,7 +53,7 @@ extern void unlock_lock(pthread_mutex_t *lockp);
 
 /* thread function
  * does report operation periodically
- * and erases rp, sp, tp in this period.
+ * and clear rp, sp, tp in this period.
  */
 extern void * thr_fn(void *arg);
 
