@@ -72,7 +72,7 @@ void unlock_lock(pthread_mutex_t *lockp) {
 static start_report() {
 	FILE *fp = NULL;
 	truncate(WRITEFLAG, 0);		/* clear file content */
-	fp = fopen(WRITEFLAG, "+w");
+	fp = fopen(WRITEFLAG, "w+");
 	if (fp == NULL) {
 		syslog(LOG_ERR, "Error: failed to open file %s .\n%s", WRITEFLAG, strerror(errno));
 		exit(EXIT_FAILURE);
@@ -84,7 +84,7 @@ static start_report() {
 static end_report() {
 	FILE *fp = NULL;
 	truncate(WRITEFLAG, 0);
-	fp = fopen(WRITEFLAG, "+w");
+	fp = fopen(WRITEFLAG, "w+");
 	if (fp == NULL) {
 		syslog(LOG_ERR, "Error: failed to open file %s .\n%s", WRITEFLAG, strerror(errno));
 		exit(EXIT_FAILURE);
