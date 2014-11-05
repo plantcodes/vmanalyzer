@@ -69,36 +69,42 @@ void unlock_lock(pthread_mutex_t *lockp) {
 	}
 }
 
-static start_report() {
+static start_report(int flag) {
 	FILE *fp = NULL;
+	char buf[2] = "";
 	truncate(WRITEFLAG, 0);		/* clear file content */
 	fp = fopen(WRITEFLAG, "w+");
 	if (fp == NULL) {
 		syslog(LOG_ERR, "Error: failed to open file %s .\n%s", WRITEFLAG, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
-	fputs("1", fp);
+	sprintf(buf, "%d", flag);
+	fputs(buf, fp);
 	fclose(fp);
 }
 
-static end_report() {
+static end_report(int flag) {
 	FILE *fp = NULL;
+	char buf[2] = "";
 	truncate(WRITEFLAG, 0);
 	fp = fopen(WRITEFLAG, "w+");
 	if (fp == NULL) {
 		syslog(LOG_ERR, "Error: failed to open file %s .\n%s", WRITEFLAG, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
-	
-	fputs("0", fp);
+	sprintf(buf, "%d", flag);
+	fputs(buf, fp);
 	fclose(fp);
 }
+
 void * thr_fn(void *arg) {
+	int flag = 0;
 	while (1) {
 		/* lock_lock(&lock); there is a lock in report_statistic */
-		start_report();
+		start_report(2);
 		report_statistic(ssp, &vsp);
-		end_report();
+		end_report(flag);
+		flag = 1-flag;
 		/* unlock_lock(&lock); */
 		syslog(LOG_INFO, "reported statistic.\n"); 
 		sleep(TS);
